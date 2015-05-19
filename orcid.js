@@ -1,39 +1,39 @@
 
 $( document ).ready(function(){
+
+
+    $('.all_info').hide();
     $('.sth').Orcid_lookup(
-        undefined,
-        function(orcid, data){
-            $('.educations').html('');
-            $('.employments').html('');
+        false,
+        function(data){
+            $('.all_info').show();
+            $('.education').html('');
+            $('.employment').html('');
+            $('.ed').hide();
+            $('.em').hide();
             $('.name').html('');
-            if(data['educations'])
-                var educations = data['educations']['education-summary'];
-            if(data['employments'])
-                var employments = data['employments']['employment-summary'];
-            $.ajax({
-                url: 'http://pub.orcid.org/v1.2/' + orcid + '/orcid-bio',
-                dataType: 'jsonp',
-                success: function(data2){
-                    var names = data2['orcid-profile']['orcid-bio']['personal-details'];
-                    $('.name').append(names['given-names']['value'] + ' ' + names['family-name']['value']);
-                }
-            })
+            $('.orcid').html('');
 
-            var process = function(data, div){
-                for(d in data){
-                    console.log(data[d]);
-                    $.ajax({
-                        url: 'http://pub.orcid.org/v2.0_rc1/' + orcid + '/' + div + '/' + data[d]['put-code'],
-                        dataType: 'jsonp',
-                        success: function(data2){
-                            $('.' + div).append('<li>' + data2['organization']['name'] + '</li>');
-                        }
-                    })
-                }
+            var orcid = data['orcid-profile']['orcid-identifier']['path'];
+            $('.orcid').html(orcid);
+
+            var names = data['orcid-profile']['orcid-bio']['personal-details'];
+            $('.name').append(names['given-names']['value'] + ' ' + names['family-name']['value']);
+
+
+            var activities = data['orcid-profile']['orcid-activities'];
+            if (activities)
+                var affiliations = activities['affiliations']['affiliation'];
+            else var affiliations = [];
+
+            for(aff in affiliations){
+                var current = affiliations[aff];
+                $('.' + current['type'].toLowerCase()).append('<li>' + current['organization']['name'] + '</li>');
+                if(current['type'].toLowerCase() === 'education')
+                    $('.ed').show();
+                else
+                    $('.em').show();
             }
-
-            process(educations, "education");
-            process(employments, "employment");
         }
     );
 })
